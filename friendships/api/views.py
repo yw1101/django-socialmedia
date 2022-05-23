@@ -25,9 +25,6 @@ class FriendshipViewSet(viewsets.GenericViewSet):
             status = status.HTTP_200_OK,
         )
 
-    def list(self, request):
-        return Response('{}')
-
 
     @action(methods = ['GET'], detail = True, permission_classes = [AllowAny])
     def followings(self, request, pk):
@@ -38,9 +35,6 @@ class FriendshipViewSet(viewsets.GenericViewSet):
             {'followings': serializer.data},
             status = status.HTTP_200_OK,
         )
-
-    def list(self, request):
-        return Response('{}')
 
 
     @action(methods = ['POST'], detail = True, permission_classes = [IsAuthenticated])
@@ -81,4 +75,4 @@ class FriendshipViewSet(viewsets.GenericViewSet):
         return Response({'success': True, 'deleted': deleted})
 
     def list(self, request):
-        return Response('{}')
+        return Response({'message': 'this is Friendship home page'})

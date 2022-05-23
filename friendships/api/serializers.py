@@ -44,6 +44,8 @@ class FriendshipSerializerForCreate(serializers.ModelSerializer):
         return attrs
 
     def create(self, validated_data):
+        from_user_id = validated_data['from_user_id']
+        to_user_id = validated_data['to_user_id']
         return Friendship.objects.create(
             from_user_id = validated_data['from_user_id'],
             to_user_id = validated_data['to_user_id'],
