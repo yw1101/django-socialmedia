@@ -14,6 +14,9 @@ class UserSerializerForTweet(serializers.ModelSerializer):
         model = User
         fields = ('id', 'username')
 
+class UserSerializerForFriendship(UserSerializerForTweet):
+    pass 
+
 
 class LoginSerializer(serializers.Serializer):
     #help to check whether there are username and password or not

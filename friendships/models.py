@@ -5,17 +5,17 @@ from django.contrib.auth.models import User
 class Friendship(models.Model):
     from_user = models.ForeignKey(
         User,
-        on_delete=models.SET_NULL,
-        null=True,
-        related_name='following_friendship_set',
+        on_delete = models.SET_NULL,
+        null = True,
+        related_name = 'following_friendship_set',
     )
     to_user = models.ForeignKey(
         User,
-        on_delete=models.SET_NULL,
-        null=True,
+        on_delete = models.SET_NULL,
+        null = True,
         related_name='follower_friendship_set',
     )
-    created_at = models.DateTimeField(auto_now_add=True)
+    created_at = models.DateTimeField(auto_now_add = True)
 
     class Meta:
         index_together = (
