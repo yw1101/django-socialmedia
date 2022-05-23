@@ -23,4 +23,4 @@ class Tweet(models.Model):
 
     def __str__(self):
         #Print(tweet instance)
-        return f'{self.created_at} {self.user}: {self.comtent}'
+        return f'{self.created_at} {self.user}: {self.content}'
