@@ -7,7 +7,7 @@ class Tweet(models.Model):
     user = models.ForeignKey(
         User,
         on_delete = models.SET_NULL,
-        null = True,
+        null = True
     )
     content = models.CharField(max_length = 255)
     created_at = models.DateTimeField(auto_now_add = True)
@@ -19,7 +19,7 @@ class Tweet(models.Model):
 
     @property
     def hours_to_now(self):
-        return (utc_now() - self.created_at).seconds //3600
+        return (utc_now() - self.created_at).seconds // 3600
 
     def __str__(self):
         #Print(tweet instance)
