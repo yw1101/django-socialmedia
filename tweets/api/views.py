@@ -7,6 +7,7 @@ from newsfeeds.services import NewsFeedService
 
 class TweetViewSet(viewsets.GenericViewSet):
     serializer_class = TweetSerializerForCreate
+    queryset = Tweet.objects.all()
 
     def get_permissions(self):
         if self.action == 'list':
@@ -16,20 +17,21 @@ class TweetViewSet(viewsets.GenericViewSet):
         return [IsAuthenticated()]
 
     #Match self.action
-    def list(self, request):
+    def list(self, request, *args, **kwargs):
         if 'user_id' not in request.query_params:
             return Response('missing user_id', status = 400)
 
         #select * from twitter_tweets
         #where user_id = xxx
         #order by created_at desc
-        user_id = request.query_params['user_id']
-        tweets = Tweet.objects.filter(user_id = user_id).order_by('-created_at')
+        tweets = Tweet.objects.filter(
+            user_id=request.query_params['user_id']
+        ).order_by('-created_at')
         #tweets is the query set transfered
         serializer = TweetSerializer(tweets, many = True) #return list of dict
         return Response({'tweets': serializer.data})
 
-    def create(self, request):
+    def create(self, request, *args, **kwargs):
         serializer = TweetSerializerForCreate(
             data = request.data,
             context = {'request': request},
@@ -40,7 +42,7 @@ class TweetViewSet(viewsets.GenericViewSet):
                 "message": "Please check input.",
                 "errors": serializer.errors,
             }, status = 400)
-            #save will call create method in TweetSerializerForCreate
+        #save will call create method in TweetSerializerForCreate
         tweet = serializer.save()
         NewsFeedService.fanout_to_followers(tweet)
         return Response(TweetSerializer(tweet).data, status = 201)

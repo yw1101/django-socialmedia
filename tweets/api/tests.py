@@ -12,9 +12,7 @@ class TweetApiTests(TestCase):
 
     #setUp will be executed everytime the every unit test is executed
     def setUp(self):
-        self.anonymous_client = APIClient()
-
-        self.user1 = self.create_user('user1', 'user1@jiuzhang.com')
+        self.user1 = self.create_user('user1', 'user1@twitter.com')
         self.tweets1 = [
             self.create_tweet(self.user1)
             for i in range(3)
@@ -22,7 +20,7 @@ class TweetApiTests(TestCase):
         self.user1_client = APIClient()
         self.user1_client.force_authenticate(self.user1)
 
-        self.user2 = self.create_user('user2', 'user2@jiuzhang.com')
+        self.user2 = self.create_user('user2', 'user2@twitter.com')
         self.tweets2 = [
             self.create_tweet(self.user2)
             for i in range(2)
@@ -39,7 +37,7 @@ class TweetApiTests(TestCase):
         self.assertEqual(len(response.data['tweets']), 3)
         response = self.anonymous_client.get(TWEET_LIST_API, {'user_id': self.user2.id})
         self.assertEqual(len(response.data['tweets']), 2)
-        #Order: the newest is the first, desc 
+        #Order: the newest is the first, desc
         self.assertEqual(response.data['tweets'][0]['id'], self.tweets2[1].id)
         self.assertEqual(response.data['tweets'][1]['id'], self.tweets2[0].id)
 
