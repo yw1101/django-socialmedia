@@ -6,7 +6,7 @@ from tweets.models import Tweet
 class Comment(models.Model):
     user = models.ForeignKey(
         User,
-        null=True,
+        null = True,
         on_delete = models.SET_NULL
     )
     tweet = models.ForeignKey(
