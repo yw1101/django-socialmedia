@@ -103,3 +103,29 @@ class CommentApiTests(TestCase):
         self.assertEqual(comment.created_at, before_created_at)
         self.assertNotEqual(comment.created_at, now)
         self.assertNotEqual(comment.updated_at, before_updated_at)
+
+    def test_list(self):
+        response = self.anonymous_client.get(COMMENT_URL)
+        self.assertEqual(response.status_code, 400)
+
+        response = self.anonymous_client.get(COMMENT_URL, {
+            'tweet_id': self.tweet.id,
+        })
+        self.assertEqual(response.status_code, 200)
+        self.assertEqual(len(response.data['comments']), 0)
+
+        self.create_comment(self.kellynim, self.tweet, '1')
+        self.create_comment(self.talenti, self.tweet, '2')
+        self.create_comment(self.talenti, self.create_tweet(self.talenti), '3')
+        response = self.anonymous_client.get(COMMENT_URL, {
+            'tweet_id': self.tweet.id,
+        })
+        self.assertEqual(len(response.data['comments']), 2)
+        self.assertEqual(response.data['comments'][0]['content'], '1')
+        self.assertEqual(response.data['comments'][1]['content'], '2')
+
+        response = self.anonymous_client.get(COMMENT_URL, {
+            'tweet_id': self.tweet.id,
+            'user_id': self.kellynim.id,
+        })
+        self.assertEqual(len(response.data['comments']), 2)
