@@ -1,6 +1,9 @@
 from django.db import models
 from django.contrib.auth.models import User
 from utils.time_helpers import utc_now
+from django.contrib.contenttypes.models import ContentType
+from likes.models import Like
+
 
 class Tweet(models.Model):
     #Who posts the tweet
@@ -24,3 +27,10 @@ class Tweet(models.Model):
     def __str__(self):
         #Print(tweet instance)
         return f'{self.created_at} {self.user}: {self.content}'
+
+    @property
+    def like_set(self):
+        return Like.objects.filter(
+            content_type = ContentType.objects.get_for_model(Tweet),
+            object_id = self.id,
+        ).order_by('-created_at')
