@@ -29,9 +29,9 @@ class CommentViewSet(viewsets.GenericViewSet):
         queryset = self.get_queryset()
         comments = self.filter_queryset(queryset).order_by('created_at')
         serializer = CommentSerializer(comments, many = True)
-        return Response({
-            'comments': serializer.data},
-            status = status.HTTP_200_OK
+        return Response(
+            {'comments': serializer.data},
+            status = status.HTTP_200_OK,
         )
         #make sure to return the hash map
 
