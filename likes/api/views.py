@@ -9,6 +9,7 @@ from likes.api.serializers import (
 from likes.models import Like
 from rest_framework.decorators import action
 from utils.decorators import required_params
+from inbox.services import NotificationService
 
 
 class LikeViewSet(viewsets.GenericViewSet):
@@ -18,7 +19,7 @@ class LikeViewSet(viewsets.GenericViewSet):
 
 
     @required_params(
-        request_attr = 'data',
+        method = 'POST',
         params = ['content_type', 'object_id']
     )
     def create(self, request, *args, **kwargs):
@@ -31,7 +32,9 @@ class LikeViewSet(viewsets.GenericViewSet):
                 'message': 'Please check input.',
                 'errors': serializer.errors,
             }, status = status.HTTP_400_BAD_REQUEST)
-        instance = serializer.save()
+        instance, created = serializer.get_or_create()
+        if created:
+            NotificationService.send_like_notification(instance)
         return Response(
             LikeSerializer(instance).data,
             status = status.HTTP_201_CREATED,
@@ -39,7 +42,7 @@ class LikeViewSet(viewsets.GenericViewSet):
 
     @action(methods = ['POST'], detail = False)
     @required_params(
-        request_attr = 'data',
+        method = 'POST',
         params = ['content_type', 'object_id']
     )
     def cancel(self, request, *args, **kwargs):
