@@ -1,7 +1,5 @@
 from testing.testcases import TestCase
-from django.test import TestCase
-from rest_framework.test import APIClient
-from django.contrib.auth.models import User
+from accounts.models import UserProfile
 
 
 LOGIN_URL = '/api/accounts/login/'
@@ -17,7 +15,7 @@ class AccountApiTests(TestCase):
         self.client = APIClient()
         self.user = self.create_user(
             username='admin',
-            email='admin@jiuzhang.com',
+            email='admin@twitter.com',
             password='correct password',
         )
 
@@ -76,7 +74,7 @@ class AccountApiTests(TestCase):
     def test_signup(self):
         data = {
             'username': 'someone',
-            'email': 'someone@jiuzhang.com',
+            'email': 'someone@twitter.com',
             'password': 'any password',
         }
         #Fail
@@ -95,7 +93,7 @@ class AccountApiTests(TestCase):
         #Too short password
         response = self.client.post(SIGNUP_URL, {
             'username': 'someone',
-            'email': 'someone@jiuzhang.com',
+            'email': 'someone@twitter.com',
             'password': '123',
         })
         # print(response.data)
@@ -104,7 +102,7 @@ class AccountApiTests(TestCase):
         #Too long username
         response = self.client.post(SIGNUP_URL, {
             'username': 'username is tooooooooooooooooo loooooooong',
-            'email': 'someone@jiuzhang.com',
+            'email': 'someone@twitter.com',
             'password': 'any password',
         })
         # print(response.data)
@@ -114,6 +112,11 @@ class AccountApiTests(TestCase):
         response = self.client.post(SIGNUP_URL, data)
         self.assertEqual(response.status_code, 201)
         self.assertEqual(response.data['user']['username'], 'someone')
+
+        #user profile
+        created_user_id = response.data['user']['id']
+        profile = UserProfile.objects.filter(user_id = created_user_id).first()
+        self.assertNotEqual(profile, None)
         #Has logged in
         response = self.client.get(LOGIN_STATUS_URL)
         self.assertEqual(response.data['has_logged_in'], True)
