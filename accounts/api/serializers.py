@@ -16,7 +16,7 @@ class UserSerializerForTweet(serializers.ModelSerializer):
 
 
 class UserSerializerForLike(UserSerializerForTweet):
-    pass 
+    pass
 
 
 class UserSerializerForComment(UserSerializerForTweet):
@@ -59,8 +59,9 @@ class SignupSerializer(serializers.ModelSerializer):
         email = validated_data['email'].lower()
         password = validated_data['password']
         user = User.objects.create_user(
-        username = username,
-        email = email,
-        password = password,
+            username = username,
+            email = email,
+            password = password,
         )
+        user.profile 
         return user
