@@ -148,8 +148,6 @@ USE_TZ = True
 
 STATIC_URL = '/static/'
 
-MEDIA_ROOT = 'media/'
-
 DEFAULT_FILE_STORAGE = 'storages.backends.s3boto3.S3Boto3Storage'
 TESTING = ((" ".join(sys.argv)).find('manage.py test') != -1)
 if TESTING:
@@ -158,6 +156,9 @@ if TESTING:
 AWS_STORAGE_BUCKET_NAME = 'django-socialmedia'
 AWS_S3_REGION_NAME = 'us-east-1'
 
+
+
+MEDIA_ROOT = 'media/'
 
 try:
     from .local_settings import *
