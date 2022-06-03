@@ -12,6 +12,7 @@ https://docs.djangoproject.com/en/3.1/ref/settings/
 
 from pathlib import Path
 
+import os
 import sys
 
 # Build paths inside the project like this: BASE_DIR / 'subdir'.
@@ -158,7 +159,9 @@ AWS_S3_REGION_NAME = 'us-east-1'
 
 
 
-MEDIA_ROOT = 'media/'
+# MEDIA_ROOT = 'media/'
+MEDIA_ROOT = os.path.join(BASE_DIR, 'media/')
+MEDIA_URL = '/media/'
 
 try:
     from .local_settings import *
