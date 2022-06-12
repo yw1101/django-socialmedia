@@ -87,23 +87,23 @@ class FriendshipApiTests(TestCase):
         # get is ok
         response = self.anonymous_client.get(url)
         self.assertEqual(response.status_code, 200)
-        self.assertEqual(len(response.data['followings']), 3)
+        self.assertEqual(len(response.data['results']), 3)
 
-        ts0 = response.data['followings'][0]['created_at']
-        ts1 = response.data['followings'][1]['created_at']
-        ts2 = response.data['followings'][2]['created_at']
+        ts0 = response.data['results'][0]['created_at']
+        ts1 = response.data['results'][1]['created_at']
+        ts2 = response.data['results'][2]['created_at']
         self.assertEqual(ts0 > ts1, True)
         self.assertEqual(ts1 > ts2, True)
         self.assertEqual(
-            response.data['followings'][0]['user']['username'],
+            response.data['results'][0]['user']['username'],
             'talenti_following2',
         )
         self.assertEqual(
-            response.data['followings'][1]['user']['username'],
+            response.data['results'][1]['user']['username'],
             'talenti_following1',
         )
         self.assertEqual(
-            response.data['followings'][2]['user']['username'],
+            response.data['results'][2]['user']['username'],
             'talenti_following0',
         )
 
@@ -115,16 +115,16 @@ class FriendshipApiTests(TestCase):
         # get is ok
         response = self.anonymous_client.get(url)
         self.assertEqual(response.status_code, 200)
-        self.assertEqual(len(response.data['followers']), 2)
+        self.assertEqual(len(response.data['results']), 2)
 
-        ts0 = response.data['followers'][0]['created_at']
-        ts1 = response.data['followers'][1]['created_at']
+        ts0 = response.data['results'][0]['created_at']
+        ts1 = response.data['results'][1]['created_at']
         self.assertEqual(ts0 > ts1, True)
         self.assertEqual(
-            response.data['followers'][0]['user']['username'],
+            response.data['results'][0]['user']['username'],
             'talenti_follower1',
         )
         self.assertEqual(
-            response.data['followers'][1]['user']['username'],
+            response.data['results'][1]['user']['username'],
             'talenti_follower0',
         )
