@@ -9,13 +9,13 @@ from friendships.api.serializers import(
     FriendshipSerializerForCreate,
 )
 from django.contrib.auth.models import User
-from utils.paginations import EndlessPagination
+from friendships.api.paginations import FriendshipPagination
 
 
 class FriendshipViewSet(viewsets.GenericViewSet):
     serializer_class = FriendshipSerializerForCreate
     queryset = User.objects.all()
-    pagination_class = EndlessPagination
+    pagination_class = FriendshipPagination
 
     @action(methods = ['GET'], detail = True, permission_classes = [AllowAny])
     def followers(self, request, pk):
