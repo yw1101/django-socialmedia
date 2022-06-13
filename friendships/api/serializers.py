@@ -40,7 +40,7 @@ class FollowingSerializer(serializers.ModelSerializer):
             return False
         return FriendshipService.has_followed(
             self.context['request'].user,
-            obj.from_user
+            obj.to_user
         )
 
 class FriendshipSerializerForCreate(serializers.ModelSerializer):
