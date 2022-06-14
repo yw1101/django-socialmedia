@@ -11,6 +11,7 @@ https://docs.djangoproject.com/en/3.1/ref/settings/
 """
 
 from pathlib import Path
+from django.core.cache import cache
 
 import os
 import sys
@@ -157,6 +158,20 @@ if TESTING:
 AWS_STORAGE_BUCKET_NAME = 'django-socialmedia'
 AWS_S3_REGION_NAME = 'us-east-1'
 
+
+CACHES = {
+    'default': {
+        'BACKEND': 'django.core.cache.backends.memcached.MemcachedCache',
+        'LOCATION': '127.0.0.1:11211',
+        'TIMEOUT': 86400,
+    },
+    'testing': {
+        'BACKEND': 'django.core.cache.backends.memcached.MemcachedCache',
+        'LOCATION': '127.0.0.1:11211',
+        'TIMEOUT': 86400,
+        'KEY_PREFIX': 'testing',
+    },
+}
 
 
 # MEDIA_ROOT = 'media/'
