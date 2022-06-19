@@ -14,6 +14,7 @@ class TweetApiTests(TestCase):
 
     #setUp will be executed everytime the every unit test is executed
     def setUp(self):
+        self.clear_cache()
         self.user1 = self.create_user('user1', 'user1@twitter.com')
         self.tweets1 = [
             self.create_tweet(self.user1)

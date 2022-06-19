@@ -12,7 +12,7 @@ from tweets.services import TweetService
 #ModelSerializer: just clarify the fields
 class TweetSerializer(serializers.ModelSerializer):
     #Dict in dict to access more info of the users
-    user = UserSerializerForTweet()
+    user = UserSerializerForTweet(source = 'cached_user')
     comments_count = serializers.SerializerMethodField()
     likes_count = serializers.SerializerMethodField()
     has_liked = serializers.SerializerMethodField()
