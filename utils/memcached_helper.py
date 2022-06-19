@@ -19,7 +19,7 @@ class MemcachedHelper:
             return obj
 
         # cache miss
-        obj = model_class.objects.get(id=object_id)
+        obj = model_class.objects.get(id = object_id)
         # using default expire time
         cache.set(key, obj)
         return obj
