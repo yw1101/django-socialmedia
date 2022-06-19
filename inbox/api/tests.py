@@ -9,6 +9,7 @@ NOTIFICATION_URL = '/api/notifications/'
 class NotificationTests(TestCase):
 
     def setUp(self):
+        self.clear_cache()
         self.kellynim, self.kellynim_client = self.create_user_and_client('kellynim')
         self.talenti, self.talenti_client = self.create_user_and_client('dong')
         self.talenti_tweet = self.create_tweet(self.talenti)
@@ -135,7 +136,7 @@ class NotificationApiTests(TestCase):
         notification = self.kellynim.notifications.first()
 
         url = '/api/notifications/{}/'.format(notification.id)
-        
+
         response = self.talenti_client.post(url, {'unread': False})
         self.assertEqual(response.status_code, 405)
 
