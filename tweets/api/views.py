@@ -10,6 +10,7 @@ from tweets.models import Tweet
 from newsfeeds.services import NewsFeedService
 from utils.decorators import required_params
 from utils.paginations import EndlessPagination
+from tweets.services import TweetService
 
 
 class TweetViewSet(viewsets.GenericViewSet):
@@ -38,7 +39,7 @@ class TweetViewSet(viewsets.GenericViewSet):
         #select * from twitter_tweets
         #where user_id = xxx
         #order by created_at desc
-        tweets = Tweet.objects.filter(user_id = user_id).order_by('-created_at')
+        tweets = TweetService.get_cached_tweets(user_id = user_id)
         tweets = self.paginate_queryset(tweets)
         #tweets is the query set transfered
         serializer = TweetSerializer(
