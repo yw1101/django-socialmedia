@@ -20,6 +20,9 @@ class Tweet(models.Model):
     content = models.CharField(max_length = 255)
     created_at = models.DateTimeField(auto_now_add = True)
 
+    likes_count = models.IntegerField(default = 0, null = True)
+    comments_count = models.IntegerField(default = 0, null = True)
+
     class Meta:
         #composite index
         index_together = (('user', 'created_at'),) #tuple
