@@ -2,22 +2,14 @@ from friendships.services import FriendshipService
 from newsfeeds.models import NewsFeed
 from twitter.cache import USER_NEWSFEEDS_PATTERN
 from utils.redis_helper import RedisHelper
+from newsfeeds.tasks import fanout_newsfeeds_main_task
 
 
 class NewsFeedService(object):
 
     @classmethod
     def fanout_to_followers(cls, tweet):
-        newsfeeds = [
-            NewsFeed(user = follower, tweet = tweet)
-            for follower in FriendshipService.get_followers(tweet.user)
-        ]
-        #The user who tweets can see the tweets he/she created
-        newsfeeds.append(NewsFeed(user = tweet.user, tweet = tweet))
-        NewsFeed.objects.bulk_create(newsfeeds)
-        #push newsfeed into cache manually
-        for newsfeed in newsfeeds:
-            cls.push_newsfeed_to_cache(newsfeed)
+        fanout_newsfeeds_main_task.delay(tweet.id, tweet.user_id)
 
     @classmethod
     def get_cached_newsfeeds(cls, user_id):
