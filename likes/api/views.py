@@ -10,6 +10,8 @@ from likes.models import Like
 from rest_framework.decorators import action
 from utils.decorators import required_params
 from inbox.services import NotificationService
+from ratelimit.decorators import ratelimit
+from django.utils.decorators import method_decorator
 
 
 class LikeViewSet(viewsets.GenericViewSet):
@@ -22,6 +24,7 @@ class LikeViewSet(viewsets.GenericViewSet):
         method = 'POST',
         params = ['content_type', 'object_id']
     )
+    @method_decorator(ratelimit(key = 'user', rate = '10/S', method = 'POST', block = True))
     def create(self, request, *args, **kwargs):
         serializer = LikeSerializerForCreate(
             data = request.data,
@@ -45,6 +48,7 @@ class LikeViewSet(viewsets.GenericViewSet):
         method = 'POST',
         params = ['content_type', 'object_id']
     )
+    @method_decorator(ratelimit(key = 'user', rate = '10/S', method = 'POST', block = True))
     def cancel(self, request, *args, **kwargs):
         serializer = LikeSerializerForCancel(
             data = request.data,
