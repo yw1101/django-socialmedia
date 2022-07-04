@@ -10,6 +10,8 @@ from comments.api.serializers import (
 from utils.permissions import IsObjectOwner
 from utils.decorators import required_params
 from inbox.services import NotificationService
+from ratelimit.decorators import ratelimit
+from django.utils.decorators import method_decorator
 
 
 class CommentViewSet(viewsets.GenericViewSet):
@@ -25,6 +27,7 @@ class CommentViewSet(viewsets.GenericViewSet):
         return [AllowAny()]
 
     @required_params(params = ['tweet_id'])
+    @method_decorator(ratelimit(key = 'user', rate = '10/s', method = 'GET', block = True))
     def list(self, request, *args, **kwargs):
         #id is in the url
         queryset = self.get_queryset()
@@ -40,6 +43,7 @@ class CommentViewSet(viewsets.GenericViewSet):
         )
         #make sure to return the hash map
 
+    @method_decorator(ratelimit(key = 'user', rate = '10/s', method = 'POST', block = True))
     def create(self, request, *args, **kwargs):
         data = {
             'user_id': request.user.id,
