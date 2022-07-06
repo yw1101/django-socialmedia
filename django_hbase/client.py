@@ -1,4 +1,4 @@
-rom django.conf import settings
+from django.conf import settings
 import happybase
 
 
@@ -10,4 +10,4 @@ class HBaseClient:
         if cls.conn:
             return cls.conn
         cls.conn = happybase.Connection(settings.HBASE_HOST)
-        return cls.conn 
+        return cls.conn
