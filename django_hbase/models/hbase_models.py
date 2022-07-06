@@ -56,7 +56,7 @@ class HBaseModel:
         return value
 
     @classmethod
-    def serialize_row_key(cls, data, is_prefix=False):
+    def serialize_row_key(cls, data, is_prefix = False):
         field_hash = cls.get_field_hash()
         values = []
         for key, field in field_hash.items():
@@ -114,8 +114,8 @@ class HBaseModel:
     def get(cls, **kwargs):
         row_key = cls.serialize_row_key(kwargs)
         table = cls.get_table()
-        row = table.row(row_key)
-        return cls.init_from_row(row_key, row)
+        row_data = table.row(row_key)
+        return cls.init_from_row(row_key, row_data)
 
     def save(self, **kwargs):
         row_data = self.serialize_row_data(self.__dict__)
@@ -159,3 +159,28 @@ class HBaseModel:
             if field.column_family is not None
         }
         conn.create_table(cls.get_table_name(), column_families)
+
+    @classmethod
+    def serialize_row_key_from_tuple(cls, row_key_tuple):
+        if row_key_tuple is None:
+            return None
+        data = {
+            key: value
+            for key, value in zip(cls.Meta.row_key, row_key_tuple)
+        }
+        return cls.serialize_row_key(data, is_prefix = True)
+
+    @classmethod
+    def filter(cls, start = None, stop = None, prefix = None, limit = None, reverse = False):
+        row_start = cls.serialize_row_key_from_tuple(start)
+        row_stop = cls.serialize_row_key_from_tuple(stop)
+        row_prefix = cls.serialize_row_key_from_tuple(prefix)
+
+        table = cls.get_table()
+        rows = table.scan(row_start, row_stop, row_prefix, limit = limit, reverse = reverse)
+
+        results = []
+        for row_key, row_data in rows:
+            instance = cls.init_from_row(row_key, row_data)
+            results.append(instance)
+        return results
