@@ -7,7 +7,7 @@ from utils.redis_client import RedisClient
 class NewsFeedServiceTests(TestCase):
 
     def setUp(self):
-        self.clear_cache()
+        super(NewsFeedServiceTests, self).setUp()
         self.kellynim = self.create_user('kellynim')
         self.talenti = self.create_user('talenti')
 
