@@ -13,7 +13,7 @@ NEWSFEED_LIST_API = '/api/newsfeeds/'
 class LikeApiTests(TestCase):
 
     def setUp(self):
-        self.clear_cache()
+        super(LikeApiTests, self).setUp()
         self.kellynim, self.kellynim_client = self.create_user_and_client('kellynim')
         self.talenti, self.talenti_client = self.create_user_and_client('talenti')
 

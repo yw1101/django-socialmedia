@@ -12,6 +12,7 @@ from django.contrib.auth.models import User
 from friendships.api.paginations import FriendshipPagination
 from ratelimit.decorators import ratelimit
 from django.utils.decorators import method_decorator
+from friendships.services import FriendshipService
 
 
 class FriendshipViewSet(viewsets.GenericViewSet):
@@ -50,12 +51,19 @@ class FriendshipViewSet(viewsets.GenericViewSet):
     @action(methods = ['POST'], detail = True, permission_classes = [IsAuthenticated])
     @method_decorator(ratelimit(key = 'user', rate = '10/s', method = 'POST', block = True))
     def follow(self, request, pk):
-        self.get_object()
+        to_follow_user = self.get_object()
+
+        if FriendshipService.has_followed(request.user.id, to_follow_user.id):
+            return Response({
+                "success": False,
+                "message": "Please check input.",
+                "errors": [{'pk': 'You has followed user with id={pk}'}],
+            }, status = status.HTTP_400_BAD_REQUEST)
 
         # /api/friendships/<pk>/follow/
         serializer = FriendshipSerializerForCreate(data = {
             'from_user_id': request.user.id,
-            'to_user_id': pk,
+            'to_user_id': to_follow_user.id,
         })
         if not serializer.is_valid():
             return Response({
@@ -80,10 +88,7 @@ class FriendshipViewSet(viewsets.GenericViewSet):
                 'message': 'You cannot unfollow yourself.',
             }, status = status.HTTP_400_BAD_REQUEST)
 
-        deleted, _ = Friendship.objects.filter(
-            from_user = request.user,
-            to_user = unfollow_user,
-        ).delete()
+        deleted = FriendshipService.unfollow(request.user.id, unfollow_user.id)
         return Response({'success': True, 'deleted': deleted})
 
     def list(self, request):

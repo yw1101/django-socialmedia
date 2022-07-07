@@ -2,6 +2,7 @@ from friendships.models import Friendship
 from rest_framework.test import APIClient
 from testing.testcases import TestCase
 from friendships.api.paginations import FriendshipPagination
+from friendships.services import FriendshipService
 
 
 FOLLOW_URL = '/api/friendships/{}/follow/'
@@ -13,7 +14,7 @@ FOLLOWINGS_URL = '/api/friendships/{}/followings/'
 class FriendshipApiTests(TestCase):
 
     def setUp(self):
-        self.clear_cache()
+        super(FriendshipApiTests, self).setUp()
         self.kellynim = self.create_user('kellynim')
         self.kellynim_client = APIClient()
         self.kellynim_client.force_authenticate(self.kellynim)
@@ -25,10 +26,10 @@ class FriendshipApiTests(TestCase):
         # create followings and followers for talenti
         for i in range(2):
             follower = self.create_user('talenti_follower{}'.format(i))
-            Friendship.objects.create(from_user=follower, to_user=self.talenti)
+            self.create_friendship(follower, self.talenti)
         for i in range(3):
             following = self.create_user('talenti_following{}'.format(i))
-            Friendship.objects.create(from_user=self.talenti, to_user=following)
+            self.create_friendship(self.talenti, following)
 
     def test_follow(self):
         url = FOLLOW_URL.format(self.kellynim.id)
@@ -49,10 +50,11 @@ class FriendshipApiTests(TestCase):
         response = self.talenti_client.post(url)
         self.assertEqual(response.status_code, 400)
 
-        count = Friendship.objects.count()
+        before_count = FriendshipService.get_following_count(self.kellynim.id)
         response = self.kellynim_client.post(FOLLOW_URL.format(self.talenti.id))
         self.assertEqual(response.status_code, 201)
-        self.assertEqual(Friendship.objects.count(), count + 1)
+        after_count = FriendshipService.get_following_count(self.kellynim.id)
+        self.assertEqual(after_count, before_count + 1)
 
     def test_unfollow(self):
         url = UNFOLLOW_URL.format(self.kellynim.id)
@@ -67,18 +69,20 @@ class FriendshipApiTests(TestCase):
         response = self.kellynim_client.post(url)
         self.assertEqual(response.status_code, 400)
 
-        Friendship.objects.create(from_user=self.talenti, to_user=self.kellynim)
-        count = Friendship.objects.count()
+        self.create_friendship(self.talenti, self.kellynim)
+        before_count = FriendshipService.get_following_count(self.talenti.id)
         response = self.talenti_client.post(url)
         self.assertEqual(response.status_code, 200)
         self.assertEqual(response.data['deleted'], 1)
-        self.assertEqual(Friendship.objects.count(), count - 1)
+        after_count = FriendshipService.get_following_count(self.talenti.id)
+        self.assertEqual(after_count, before_count - 1)
 
-        count = Friendship.objects.count()
+        before_count = FriendshipService.get_following_count(self.talenti.id)
         response = self.talenti_client.post(url)
         self.assertEqual(response.status_code, 200)
         self.assertEqual(response.data['deleted'], 0)
-        self.assertEqual(Friendship.objects.count(), count)
+        after_count = FriendshipService.get_following_count(self.talenti.id)
+        self.assertEqual(after_count, before_count)
 
     def test_followings(self):
         url = FOLLOWINGS_URL.format(self.talenti.id)
