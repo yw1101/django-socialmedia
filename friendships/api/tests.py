@@ -3,6 +3,7 @@ from rest_framework.test import APIClient
 from testing.testcases import TestCase
 from friendships.api.paginations import FriendshipPagination
 from friendships.services import FriendshipService
+from utils.paginations import EndlessPagination
 
 
 FOLLOW_URL = '/api/friendships/{}/follow/'
@@ -136,88 +137,126 @@ class FriendshipApiTests(TestCase):
 
 
     def test_followers_pagination(self):
-        max_page_size = FriendshipPagination.max_page_size
-        page_size = FriendshipPagination.page_size
+        page_size = EndlessPagination.page_size
+        friendships = []
         for i in range(page_size * 2):
             follower = self.create_user('kellynim_follower{}'.format(i))
-            Friendship.objects.create(from_user=follower, to_user=self.kellynim)
+            friendship = self.create_friendship(follower, self.kellynim)
+            friendships.append(friendship)
             if follower.id % 2 == 0:
-                Friendship.objects.create(from_user=self.talenti, to_user=follower)
+                self.create_friendship(self.talenti, follower)
 
         url = FOLLOWERS_URL.format(self.kellynim.id)
-        self._test_friendship_pagination(url, page_size, max_page_size)
+        self._pagination_until_the_end(url, 2, friendships)
 
         # anonymous hasn't followed any users
-        response = self.anonymous_client.get(url, {'page': 1})
+        response = self.anonymous_client.get(url)
         for result in response.data['results']:
             self.assertEqual(result['has_followed'], False)
 
         # talenti has followed users with even id
-        response = self.talenti_client.get(url, {'page': 1})
+        response = self.talenti_client.get(url)
         for result in response.data['results']:
             has_followed = (result['user']['id'] % 2 == 0)
             self.assertEqual(result['has_followed'], has_followed)
 
     def test_followings_pagination(self):
-        max_page_size = FriendshipPagination.max_page_size
-        page_size = FriendshipPagination.page_size
+        page_size = EndlessPagination.page_size
+        friendships = []
         for i in range(page_size * 2):
             following = self.create_user('kellynim_following{}'.format(i))
-            Friendship.objects.create(from_user=self.kellynim, to_user=following)
+            friendship = self.create_friendship(self.kellynim, following)
+            friendships.append(friendship)
             if following.id % 2 == 0:
-                Friendship.objects.create(from_user=self.talenti, to_user=following)
+                self.create_friendship(self.talenti, following)
 
         url = FOLLOWINGS_URL.format(self.kellynim.id)
-        self._test_friendship_pagination(url, page_size, max_page_size)
+        self._pagination_until_the_end(url, 2, friendships)
 
         # anonymous hasn't followed any users
-        response = self.anonymous_client.get(url, {'page': 1})
+        response = self.anonymous_client.get(url)
         for result in response.data['results']:
             self.assertEqual(result['has_followed'], False)
 
         # talenti has followed users with even id
-        response = self.talenti_client.get(url, {'page': 1})
+        response = self.talenti_client.get(url)
         for result in response.data['results']:
             has_followed = (result['user']['id'] % 2 == 0)
             self.assertEqual(result['has_followed'], has_followed)
 
         # kellynim has followed all his following users
-        response = self.kellynim_client.get(url, {'page': 1})
+        response = self.kellynim_client.get(url)
         for result in response.data['results']:
             self.assertEqual(result['has_followed'], True)
 
-    def _test_friendship_pagination(self, url, page_size, max_page_size):
-        response = self.anonymous_client.get(url, {'page': 1})
+        last_created_at = friendships[-1].created_at
+        response = self.kellynim_client.get(url, {'created_at__gt': last_created_at})
         self.assertEqual(response.status_code, 200)
-        self.assertEqual(len(response.data['results']), page_size)
-        self.assertEqual(response.data['total_pages'], 2)
-        self.assertEqual(response.data['total_results'], page_size * 2)
-        self.assertEqual(response.data['page_number'], 1)
-        self.assertEqual(response.data['has_next_page'], True)
+        self.assertEqual(len(response.data['results']), 0)
 
-        response = self.anonymous_client.get(url, {'page': 2})
-        self.assertEqual(response.status_code, 200)
-        self.assertEqual(len(response.data['results']), page_size)
-        self.assertEqual(response.data['total_pages'], 2)
-        self.assertEqual(response.data['total_results'], page_size * 2)
-        self.assertEqual(response.data['page_number'], 2)
-        self.assertEqual(response.data['has_next_page'], False)
+        new_friends = [self.create_user('big_v{}'.format(i)) for i in range(3)]
+        new_friendships = []
+        for friend in new_friends:
+            new_friendships.append(self.create_friendship(from_user = self.kellynim, to_user = friend))
+        response = self.kellynim_client.get(url, {'created_at__gt': last_created_at})
+        self.assertEqual(len(response.data['results']), 3)
+        for result, friendship in zip(response.data['results'], reversed(new_friendships)):
+            self.assertEqual(result['created_at'], friendship.created_at)
 
-        response = self.anonymous_client.get(url, {'page': 3})
-        self.assertEqual(response.status_code, 404)
 
-        # test user can not customize page_size exceeds max_page_size
-        response = self.anonymous_client.get(url, {'page': 1, 'size': max_page_size + 1})
-        self.assertEqual(len(response.data['results']), max_page_size)
-        self.assertEqual(response.data['total_pages'], 2)
-        self.assertEqual(response.data['total_results'], page_size * 2)
-        self.assertEqual(response.data['page_number'], 1)
-        self.assertEqual(response.data['has_next_page'], True)
 
-        # test user can customize page size by param size
-        response = self.anonymous_client.get(url, {'page': 1, 'size': 2})
-        self.assertEqual(len(response.data['results']), 2)
-        self.assertEqual(response.data['total_pages'], page_size)
-        self.assertEqual(response.data['total_results'], page_size * 2)
-        self.assertEqual(response.data['page_number'], 1)
-        self.assertEqual(response.data['has_next_page'], True)
+    # def _test_friendship_pagination(self, url, page_size, max_page_size):
+    #     response = self.anonymous_client.get(url, {'page': 1})
+    #     self.assertEqual(response.status_code, 200)
+    #     self.assertEqual(len(response.data['results']), page_size)
+    #     self.assertEqual(response.data['total_pages'], 2)
+    #     self.assertEqual(response.data['total_results'], page_size * 2)
+    #     self.assertEqual(response.data['page_number'], 1)
+    #     self.assertEqual(response.data['has_next_page'], True)
+    #
+    #     response = self.anonymous_client.get(url, {'page': 2})
+    #     self.assertEqual(response.status_code, 200)
+    #     self.assertEqual(len(response.data['results']), page_size)
+    #     self.assertEqual(response.data['total_pages'], 2)
+    #     self.assertEqual(response.data['total_results'], page_size * 2)
+    #     self.assertEqual(response.data['page_number'], 2)
+    #     self.assertEqual(response.data['has_next_page'], False)
+    #
+    #     response = self.anonymous_client.get(url, {'page': 3})
+    #     self.assertEqual(response.status_code, 404)
+    #
+    #     # test user can not customize page_size exceeds max_page_size
+    #     response = self.anonymous_client.get(url, {'page': 1, 'size': max_page_size + 1})
+    #     self.assertEqual(len(response.data['results']), max_page_size)
+    #     self.assertEqual(response.data['total_pages'], 2)
+    #     self.assertEqual(response.data['total_results'], page_size * 2)
+    #     self.assertEqual(response.data['page_number'], 1)
+    #     self.assertEqual(response.data['has_next_page'], True)
+    #
+    #     # test user can customize page size by param size
+    #     response = self.anonymous_client.get(url, {'page': 1, 'size': 2})
+    #     self.assertEqual(len(response.data['results']), 2)
+    #     self.assertEqual(response.data['total_pages'], page_size)
+    #     self.assertEqual(response.data['total_results'], page_size * 2)
+    #     self.assertEqual(response.data['page_number'], 1)
+    #     self.assertEqual(response.data['has_next_page'], True)
+
+
+    def _pagination_until_the_end(self, url, expect_pages, friendships):
+        results, pages = [], 0
+        response = self.anonymous_client.get(url)
+        results.extend(response.data['results'])
+        pages += 1
+        while response.data['has_next_page']:
+            self.assertEqual(response.status_code, 200)
+            last_item = response.data['results'][-1]
+            response = self.anonymous_client.get(url, {
+                'created_at__lt': last_item['created_at'],
+            })
+            results.extend(response.data['results'])
+            pages += 1
+
+        self.assertEqual(len(results), len(friendships))
+        self.assertEqual(pages, expect_pages)
+        for result, friendship in zip(results, friendships[::-1]):
+            self.assertEqual(result['created_at'], friendship.created_at)
